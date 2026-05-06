@@ -1,0 +1,18 @@
+# Secrets
+server/credentials.json
+server/.env
+
+# Dependencies
+server/node_modules/
+client/node_modules/
+
+# Build outputs
+client/dist/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
