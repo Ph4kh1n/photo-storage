@@ -6,7 +6,7 @@
     "enabled": true
   },
   "assets": {
-    "directory": "dist"
+    "directory": "client/dist"
   },
   "compatibility_flags": [
     "nodejs_compat"
