@@ -6,7 +6,15 @@ const cors = require('cors');
 const app = express();
 const port = process.env.PORT || 3001;
 
-app.use(cors({ origin: 'https://matthayom-again.phakhinnongthong.workers.dev/' }));
+app.use(cors({ 
+  origin: [
+    'https://matthayom-again.phakhinnongthong.workers.dev',
+    'https://matthayom-again.phakhinnongthong.workers.dev/' // เพิ่มแบบมี slash เผื่อไว้
+  ],
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
 app.use(express.json());
 
 // Google Drive API Setup
