@@ -5,6 +5,7 @@ server/.env
 # Dependencies
 server/node_modules/
 client/node_modules/
+node_modules/
 
 # Build outputs
 client/dist/
