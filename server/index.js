@@ -138,6 +138,63 @@ app.get('/api/list', async (req, res) => {
   }
 });
 
+// Open Graph meta tags for folder (for link previews when sharing)
+app.get('/api/og/:folderId', async (req, res) => {
+  try {
+    const folderId = req.params.folderId;
+
+    const [folderInfo, photosRes] = await Promise.all([
+      drive.files.get({
+        fileId: folderId,
+        fields: 'id, name',
+      }),
+      drive.files.list({
+        q: `'${folderId}' in parents and mimeType contains 'image/' and trashed = false`,
+        fields: 'files(id, name, thumbnailLink)',
+        pageSize: 1,
+        orderBy: 'createdTime desc',
+      }),
+    ]);
+
+    const folderName = folderInfo.data.name;
+    const firstPhoto = photosRes.data.files[0];
+    const imageUrl = firstPhoto
+      ? (firstPhoto.thumbnailLink || `https://lh3.googleusercontent.com/d/${firstPhoto.id}=s600`)
+      : '';
+
+    const title = escapeHtml(folderName);
+    const description = escapeHtml(`View photos in ${folderName} - Matthayom Again`);
+    const imageTag = imageUrl ? `<meta property="og:image" content="${escapeHtml(imageUrl)}" />
+    <meta name="twitter:image" content="${escapeHtml(imageUrl)}" />` : '';
+
+    const html = `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>${title} - Matthayom Again</title>
+<meta property="og:title" content="${title}" />
+<meta property="og:description" content="${description}" />
+${imageTag}
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta http-equiv="refresh" content="0;url=/#${folderId}" />
+<script>window.location.hash = '${folderId}';</script>
+</head>
+<body></body>
+</html>`;
+
+    res.setHeader('Content-Type', 'text/html');
+    res.send(html);
+  } catch (error) {
+    console.error('Error generating OG:', error);
+    res.redirect('/');
+  }
+});
+
+function escapeHtml(str) {
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
 // Get folder info (name, parent)
 app.get('/api/folder/:folderId', async (req, res) => {
   try {

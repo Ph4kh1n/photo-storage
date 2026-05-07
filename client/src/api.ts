@@ -28,3 +28,7 @@ export function getDownloadUrl(fileId: string): string {
 export function getFullImageUrl(fileId: string): string {
   return `${API_BASE}/api/download/${fileId}`;
 }
+
+export function getOgUrl(folderId: string): string {
+  return `${API_BASE}/api/og/${folderId}`;
+}
