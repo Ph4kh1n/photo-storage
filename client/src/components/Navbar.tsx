@@ -1,19 +1,26 @@
+import { getDownloadUrl } from '../api';
+
 interface NavbarProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
   theme: 'dark' | 'light';
   onToggleTheme: () => void;
+  logoUrl: string | null;
 }
 
-export default function Navbar({ activeTab, setActiveTab, theme, onToggleTheme }: NavbarProps) {
+export default function Navbar({ activeTab, setActiveTab, theme, onToggleTheme, logoUrl }: NavbarProps) {
   return (
     <nav className="navbar">
       <div className="nav-brand">
-        <svg className="nav-logo" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-          <circle cx="8.5" cy="8.5" r="1.5" />
-          <polyline points="21 15 16 10 5 21" />
-        </svg>
+        {logoUrl ? (
+          <img className="nav-logo nav-logo-img" src={getDownloadUrl(logoUrl)} alt="logo" />
+        ) : (
+          <svg className="nav-logo" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+            <circle cx="8.5" cy="8.5" r="1.5" />
+            <polyline points="21 15 16 10 5 21" />
+          </svg>
+        )}
         <span>Friendship Is Magic</span>
       </div>
       <div className="nav-links">

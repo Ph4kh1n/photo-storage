@@ -27,7 +27,11 @@ interface MediaItem {
   createdTime: string;
 }
 
-export default function Gallery() {
+interface GalleryProps {
+  onLogoChange?: (id: string | null) => void;
+}
+
+export default function Gallery({ onLogoChange }: GalleryProps) {
   const [contents, setContents] = useState<FolderContents | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -38,7 +42,9 @@ export default function Gallery() {
   const [sortBy, setSortBy] = useState<SortMode>('latest');
   const [showSortMenu, setShowSortMenu] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 480);
+  const [exitAlert, setExitAlert] = useState(false);
   const sortRef = useRef<HTMLDivElement>(null);
+  const exitTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
   const loadCount = useRef(0);
 
   useEffect(() => {
@@ -154,6 +160,13 @@ export default function Gallery() {
   }, [currentFolderId]);
 
   useEffect(() => {
+    if (onLogoChange && contents && !currentFolderId) {
+      const jpg = contents.photos.find(p => p.name.toLowerCase().endsWith('.jpg'));
+      onLogoChange(jpg ? jpg.id : null);
+    }
+  }, [contents, currentFolderId, onLogoChange]);
+
+  useEffect(() => {
     const folderName = breadcrumbs[breadcrumbs.length - 1].name;
     const isRoot = breadcrumbs.length === 1;
     const firstPhoto = contents?.photos?.[0];
@@ -203,6 +216,21 @@ export default function Gallery() {
   const navigateHome = () => {
     setBreadcrumbs([{ id: 'root', name: 'All Photos' }]);
     loadFolderContents(null);
+  };
+
+  const handleMobileBack = () => {
+    if (breadcrumbs.length > 1) {
+      navigateBreadcrumb(breadcrumbs.length - 2);
+    } else {
+      if (exitAlert) {
+        setExitAlert(false);
+        clearTimeout(exitTimer.current);
+        window.close();
+      } else {
+        setExitAlert(true);
+        exitTimer.current = setTimeout(() => setExitAlert(false), 3000);
+      }
+    }
   };
 
   const handlePreview = (id: string) => {
@@ -278,7 +306,7 @@ export default function Gallery() {
   if (!contents || (contents.folders.length === 0 && contents.photos.length === 0 && contents.videos.length === 0)) {
     return (
       <div className="gallery-container">
-        <BreadcrumbNav breadcrumbs={breadcrumbs} onNavigate={navigateBreadcrumb} onHome={navigateHome} isMobile={isMobile} />
+        <BreadcrumbNav breadcrumbs={breadcrumbs} onNavigate={navigateBreadcrumb} onHome={navigateHome} />
         <div className="empty-state">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
@@ -291,7 +319,11 @@ export default function Gallery() {
 
   return (
     <div className="gallery-container">
-      <BreadcrumbNav breadcrumbs={breadcrumbs} onNavigate={navigateBreadcrumb} onHome={navigateHome} isMobile={isMobile} />
+      <BreadcrumbNav breadcrumbs={breadcrumbs} onNavigate={navigateBreadcrumb} onHome={isMobile ? handleMobileBack : navigateHome} />
+
+      {exitAlert && isMobile && (
+        <div className="exit-toast">Press back again to leave website</div>
+      )}
 
       <div className="gallery-header">
         <h2>
@@ -411,32 +443,16 @@ interface BreadcrumbNavProps {
   breadcrumbs: Breadcrumb[];
   onNavigate: (index: number) => void;
   onHome: () => void;
-  isMobile?: boolean;
 }
 
-function BreadcrumbNav({ breadcrumbs, onNavigate, onHome, isMobile }: BreadcrumbNavProps) {
-  const handleBack = () => {
-    if (isMobile && breadcrumbs.length > 1) {
-      onNavigate(breadcrumbs.length - 2);
-    } else {
-      onHome();
-    }
-  };
-
+function BreadcrumbNav({ breadcrumbs, onNavigate, onHome }: BreadcrumbNavProps) {
   return (
     <nav className="breadcrumb-nav">
-      <button className="breadcrumb-home" onClick={handleBack} title={isMobile && breadcrumbs.length > 1 ? 'Go back' : 'Go to root'}>
-        {isMobile && breadcrumbs.length > 1 ? (
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <line x1="19" y1="12" x2="5" y2="12" />
-            <polyline points="12 19 5 12 12 5" />
-          </svg>
-        ) : (
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-            <polyline points="9 22 9 12 15 12 15 22" />
-          </svg>
-        )}
+      <button className="breadcrumb-home" onClick={onHome} title="Go to root">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+          <polyline points="9 22 9 12 15 12 15 22" />
+        </svg>
       </button>
       {breadcrumbs.map((crumb, index) => (
         <span key={crumb.id} className="breadcrumb-item">

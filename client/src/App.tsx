@@ -23,6 +23,7 @@ if (typeof document !== 'undefined') {
 function App() {
   const [activeTab, setActiveTab] = useState('gallery');
   const [theme, setTheme] = useState<'dark' | 'light'>(initialTheme);
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
 
   useEffect(() => {
     document.documentElement.className = theme === 'light' ? 'light' : '';
@@ -33,9 +34,9 @@ function App() {
 
   return (
     <>
-      <Navbar activeTab={activeTab} setActiveTab={setActiveTab} theme={theme} onToggleTheme={toggleTheme} />
+      <Navbar activeTab={activeTab} setActiveTab={setActiveTab} theme={theme} onToggleTheme={toggleTheme} logoUrl={logoUrl} />
       <main className="main-content">
-        {activeTab === 'gallery' ? <Gallery /> : <Analytics />}
+        {activeTab === 'gallery' ? <Gallery onLogoChange={setLogoUrl} /> : <Analytics />}
       </main>
     </>
   );
